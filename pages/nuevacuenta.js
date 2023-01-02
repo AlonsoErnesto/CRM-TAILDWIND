@@ -72,6 +72,7 @@ const Nuevacuenta = () => {
 
          } catch (error) {
             setMensaje(error.message.replace('ApolloError:' , ''));
+            console.log(error)
             setTimeout(()=>{
                setMensaje(null);
             },3000);
@@ -183,7 +184,7 @@ const Nuevacuenta = () => {
                            onBlur = { formik.handleBlur }
                         />
                      </div>
-                     {/*  ------ VALIDATE EMAIL ------ */}
+                     {/*  ------ VALIDATE PASSWORD ------ */}
                      { formik.touched.password && formik.errors.password ? (
                         <div className='bg-red-100 my-2 border-l-4 border-red-500 text-red-700 p-2'>
                            <p className='font-bold'>Error : </p>
