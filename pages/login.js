@@ -9,7 +9,7 @@ import Layout from '../components/Layout';
 
 
 const AUTENTICAR_USUARIO = gql`
-mutation autenticarUsuar($input: AutenticarInput) {
+mutation autenticarUsuario($input: AutenticarInput) {
    autenticarUsuario(input: $input) {
       token
    }
