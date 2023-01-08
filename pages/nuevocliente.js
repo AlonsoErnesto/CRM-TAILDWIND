@@ -1,4 +1,4 @@
-import React from 'react';
+import {React, useState} from 'react';
 import Layout from '../components/Layout';
 import * as Yup from 'yup';
 import { useFormik } from 'formik';
@@ -18,13 +18,40 @@ mutation nuevoCliente ($input:ClienteInput){
 }
 `;
 
+const OBTENER_CLIENTES_USUARIO = gql`
+   query obtenerClientesVendedor {
+      obtenerClientesVendedor { 
+         id
+         nombre
+         apellido
+         empresa
+         email
+      }
+   }
+`;
+
 
 const NuevoCliente = () => {
 
    const router = useRouter();
+   // Mensaje de alerta
+   const [mensaje, setMensaje] = useState(null);
 
       // mutation para crear nuevos clientes
-   const [ nuevoCliente ] = useMutation(NUEVO_CLIENTE);
+      // Cache para obtener la ultima Informacion sin hacer peticion a la BD (mejor que refetch en performance)
+   const [ nuevoCliente ] = useMutation(NUEVO_CLIENTE,{
+      update(cache, {data:{nuevoCliente}}) {
+         // Obtener Objeto de cache que deseamos actualizar
+         const { obtenerClientesVendedor } = cache.readQuery({ query : OBTENER_CLIENTES_USUARIO  });
+         // Reescribimos el cache,(el cache nunca se puede modificar pero si sobreescribir)
+         cache.writeQuery({
+            query : OBTENER_CLIENTES_USUARIO,
+            data : {
+               obtenerClientesVendedor : [...obtenerClientesVendedor, nuevoCliente]
+            }
+         });
+      }
+   });
 
    const formik = useFormik({
       initialValues: {
@@ -58,15 +85,27 @@ const NuevoCliente = () => {
             });
             router.push('/');
          } catch (err) {
-            console.log('ERROR',err)   
+            setMensaje(err.message);
+            setTimeout(() => {
+               setMensaje(null);
+            }, 2000);
          }
       }
    });
 
+   
+   const mostrarMensaje = ( ) => {
+      return (
+         <div className='bg-white py-2 px-3 w-full my-3 max-w-sm text-center mx-auto'>
+            <p>{mensaje}</p>
+         </div>
+      );
+   };
 
    return (
       <Layout>
          <h1 className='text-2xl text-gray-800 font-light'>Nuevo Cliente</h1>
+         { mensaje && mostrarMensaje() }
          <div className='flex justify-center mt-5'>
             <div className='w-full max-w-lg'>
                <form className="bg-white shadow-md px-8 pt-6 pb-8 mb-4" onSubmit={formik.handleSubmit}>
