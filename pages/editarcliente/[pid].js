@@ -1,9 +1,10 @@
 import React from 'react';
 import { useRouter } from 'next/router';
 import Layout from '../../components/Layout';
-import { gql, useQuery } from '@apollo/client';
+import { gql, useQuery, useMutation } from '@apollo/client';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
+import Swal from 'sweetalert2';
 
 // OBTENER CLIENTE GQL
 const OBTENER_CLIENTE = gql`
@@ -18,6 +19,18 @@ const OBTENER_CLIENTE = gql`
 }
 `;
 
+
+// ACTUALIZAR CLIENTE 
+const ACTUALIZAR_CLIENTE = gql`
+   mutation actualizarCliente ($id:ID!,$input:ClienteInput!){
+   actualizarCliente(id:$id,input:$input){
+      nombre
+      apellido
+      empresa
+      email
+   }
+}
+`;
 
 const EditarCliente = () => {
 
@@ -41,11 +54,47 @@ const EditarCliente = () => {
       }
    });
 
+   // Actualizar el cliente
+   const [ actualizarCliente ] = useMutation(ACTUALIZAR_CLIENTE);
+
+
+
+   // Cargar antes de mostrar la informacion
    if(loading) return 'Cargando ...';
 
 
    // const { nombre,apellido,email,telefono,empresa } = data.obtenerCliente;
    const { obtenerCliente } = data;
+
+   // Modifica el cliente de la BD
+   const actualizarInfoCliente = async (valores) => {
+      const { nombre,apellido,email,telefono,empresa} = valores;
+      try {
+         const { data } = await actualizarCliente({
+            variables : {
+               id : pid,
+               input : {
+                  nombre,
+                  apellido,
+                  email,
+                  email,
+                  telefono,
+                  empresa,
+               }
+            }
+         });
+         // sweet alerta del cliente actualizado
+         Swal.fire(
+            'Editado!',
+            'El cliente se edito correctamente.',
+            'success'
+         )
+         // redirrecionar
+         router.push('/');
+      } catch (err) {
+         console.log(err);
+      }
+   };
 
    return (
       <Layout>
@@ -57,7 +106,7 @@ const EditarCliente = () => {
                   enableReinitialize
                   initialValues={obtenerCliente}
                   onSubmit = {(valores, funciones)=>{
-                     
+                     actualizarInfoCliente(valores);
                   }}
                >
                   { props => {
