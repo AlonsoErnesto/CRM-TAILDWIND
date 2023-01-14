@@ -2,7 +2,7 @@ import React,{useReducer} from 'react';
 import PedidoContext from './PedidoContext';
 import PedidoReducer from './PedidoReducer';
 
-import { SELECCIONAR_CLIENTE, SELECCIONAR_PRODUCTO, CANTIDAD_PRODUCTOS } from '../../types';
+import { SELECCIONAR_CLIENTE, SELECCIONAR_PRODUCTO, CANTIDAD_PRODUCTOS,ACTUALIZAR_TOTAL } from '../../types';
 
 const PedidoState = ({children}) => {
 
@@ -23,10 +23,38 @@ const PedidoState = ({children}) => {
    };
 
    // Modificar el producto
-   const agregarProducto = productos => {
+   const agregarProducto = productosSeleecionados => {
+      let nuevoState;
+      if(state.productos.length > 0) {
+         // tomar del segundo arreglo una copia para asignarlo al primero
+         nuevoState = productosSeleecionados.map((producto) =>{
+            const nuevoObjeto = state.productos.find(productoState => productoState.id === producto.id);
+            return {
+               ...producto, 
+               ...nuevoObjeto
+            }
+         })
+      } else {
+         nuevoState = productosSeleecionados;
+      }
       dispatch({
          type:SELECCIONAR_PRODUCTO,
-         payload:productos
+         payload:nuevoState
+      });
+   };
+
+   // Modifica las cantidades de los productos
+   const cantidadProductos = nuevoProducto => {
+      dispatch({
+         type:CANTIDAD_PRODUCTOS,
+         payload:nuevoProducto
+      });
+   };
+
+   const actualizarTotal = () => {
+      dispatch({
+         type:ACTUALIZAR_TOTAL,
+
       })
    };
 
@@ -34,8 +62,11 @@ const PedidoState = ({children}) => {
       <PedidoContext.Provider 
          value={{
             productos : state.productos,
+            total:state.total,
             agregarCliente,
-            agregarProducto
+            agregarProducto,
+            cantidadProductos,
+            actualizarTotal
          }}
       >
          {children}
