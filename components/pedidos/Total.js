@@ -13,7 +13,7 @@ const Total = () => {
       <div>
          <div className='flex justify-between'>
             <hr/>
-            <hr className='h-1 my-5 bg-gray-700 w-1/2 right-0' />
+            {total &&  <hr className='h-1 my-5 bg-gray-700 w-1/2 right-0' />}
          </div>
          <div className='flex items-center mt-1 justify-between bg-white p-3'>
             <h2 className='text-gray-800 text-lg'>Total a pagar:</h2>
