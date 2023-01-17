@@ -41,14 +41,14 @@ const NuevoPedido = () => {
       
       const { id } = cliente;
       // Remover lo que no se necesita de productos
-      const pedido = productos.map(({__typename,existencia, ...producto}) => producto );
+      const pedidos = productos.map(({__typename,existencia, ...producto}) => producto );
       try {
          const { data } = await nuevoPedido({
             variables : {
                input : {
                   cliente : id,
                   total,
-                  pedido
+                  pedidos
                }
             }
          });

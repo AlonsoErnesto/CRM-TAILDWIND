@@ -26,7 +26,6 @@ const AsignarProductos = () => {
    const {data, loading, error} = useQuery(OBTENER_PRODUCTOS);
 
    useEffect(() => {
-      console.log(productos);
    }, [productos]);
 
    const seleccionarProducto = producto => {

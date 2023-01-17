@@ -6,7 +6,6 @@ import ProductoResumen from './ProductoResumen';
 const ResumenPedido = () => {
 
    const { productos } = useContext(PedidoContext);
-   console.log(productos)
 
    return (
       <>

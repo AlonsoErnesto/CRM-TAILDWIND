@@ -10,14 +10,21 @@ const OBTENER_PEDIDOS = gql`
    query obtenerPedidosVendedor {
       obtenerPedidosVendedor {
          id
-         pedido {
+         pedidos {
             id
             cantidad
+            nombre
          }
-         cliente
+         estado
+         cliente {
+            id
+            nombre
+            apellido
+            email
+            telefono
+         }
          vendedor
          total
-         estado
       }
    }
 `;
