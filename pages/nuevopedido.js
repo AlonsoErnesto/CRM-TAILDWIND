@@ -23,6 +23,30 @@ const NUEVO_PEDIDO = gql`
    }
 `;
 
+// OBTENER PEDIDOS
+const OBTENER_PEDIDOS = gql`
+   query obtenerPedidosVendedor {
+      obtenerPedidosVendedor {
+         id
+         pedidos {
+            id
+            cantidad
+            nombre
+         }
+         estado
+         cliente {
+            id
+            nombre
+            apellido
+            email
+            telefono
+         }
+         vendedor
+         total
+      }
+   }
+`;
+
 const NuevoPedido = () => {
 
    const router = useRouter();
@@ -30,7 +54,19 @@ const NuevoPedido = () => {
    // Extraer valores del contextPedido
    const pedidoContext = useContext(PedidoContext);
    const { cliente, productos, total } = pedidoContext;
-   const [ nuevoPedido ] = useMutation(NUEVO_PEDIDO);
+   const [ nuevoPedido ] = useMutation(NUEVO_PEDIDO,{
+      update(cache,{data:{nuevoPedido}}) {
+         const { obtenerPedidosVendedor} = cache.readQuery({
+            query : OBTENER_PEDIDOS
+         });
+         cache.writeQuery({
+            query : OBTENER_PEDIDOS,
+            data : {
+               obtenerPedidosVendedor : [...obtenerPedidosVendedor , nuevoPedido]
+            }
+         })
+      }
+   });
 
    const validarPedido = () => {
       return !productos.every(producto => producto.cantidad > 0) || total === 0 || cliente.length === 0 ? " opacity-50 cursor-not-allowed " : "" ;
@@ -38,7 +74,6 @@ const NuevoPedido = () => {
    }
 
    const crearNuevoCliente = async () => {
-      
       const { id } = cliente;
       // Remover lo que no se necesita de productos
       const pedidos = productos.map(({__typename,existencia, ...producto}) => producto );

@@ -1,8 +1,53 @@
-import React, {useState, useEffect} from 'react'
+import React, {useState, useEffect} from 'react';
+import { gql, useMutation } from '@apollo/client';
+import Swal from 'sweetalert2';
+
+
+
+// ACTUALIZAR PEDIDO
+const ACTUALIZAR_PEDIDO = gql`
+   mutation actualizarPedido ($id : ID!,$input:PedidoInput){
+      actualizarPedido(id:$id,input:$input){
+         estado
+   }
+}
+`;
+// ELIMINAR PEDIDO
+const ELIMINAR_PEDIDO = gql`
+   mutation eliminarPedido ($id : ID!) { 
+      eliminarPedido (id:$id)
+   }
+`;
+
+// OBTENER PEDIDOS
+const OBTENER_PEDIDOS = gql`
+   query obtenerPedidosVendedor {
+      obtenerPedidosVendedor {
+         id
+   }
+   }
+`;
 
 const Pedido = ({pedido}) => {
 
-   const { id, total, cliente:{nombre, apellido, telefono,email}, estado} = pedido;
+   const { id, total, cliente:{nombre, apellido, telefono,email}, estado, cliente} = pedido;
+   // Mutation para cambiar el pedido
+   const [ actualizarPedido ] = useMutation(ACTUALIZAR_PEDIDO);
+   const [ eliminarPedido ] = useMutation(ELIMINAR_PEDIDO,{
+      update(cache) {
+         const { obtenerPedidosVendedor } = cache.readQuery({
+            query : OBTENER_PEDIDOS
+         });
+         cache.writeQuery({
+            query : OBTENER_PEDIDOS,
+            data : {
+               obtenerPedidosVendedor : obtenerPedidosVendedor.filter(pedido => pedido.id !== id)
+            }
+         })
+      }
+   });
+
+
    const [estadoPedido, setEstadoPedido] = useState(estado);
    const [clase, setClase] = useState('');
    useEffect(() => {
@@ -22,6 +67,58 @@ const Pedido = ({pedido}) => {
          setClase('border-red-800');
       }
    }
+
+   const cambiarEstadoPedido = async nuevoestado => {
+      try {
+         const { data } = await actualizarPedido({
+            variables : {
+               id,
+               input : {
+                  estado:nuevoestado,
+                  cliente:cliente.id
+               }
+            }
+         });
+         setEstadoPedido(data.actualizarPedido.estado);
+         
+      } catch (err) {
+         console.log('ERROR',err)
+      }
+   };
+
+   // Eliminar Pedido
+   const confimarEliminarPedido =  () => {
+      Swal.fire({
+         title: 'Deseas eliminar este pedido?',
+         text: "No se podra revertir al eliminar!",
+         icon: 'warning',
+         showCancelButton: true,
+         confirmButtonColor: '#3085d6',
+         cancelButtonColor: '#d33',
+         confirmButtonText: 'Si, eliminar!',
+         cancelButtonText : 'Cancelar'
+      }).then(async (result) => {
+         if (result.isConfirmed) {
+            try {
+               // Eliminar por ID
+               const data = await eliminarPedido({
+                  variables:{
+                     id
+                  }
+               })
+               
+               // Mostrar por alerta
+               Swal.fire(
+                  'Eliminado!',
+                  data.eliminarPedido,
+                  'success',
+               )
+            } catch (err) {
+               console.log(err)
+            }
+         }
+      })
+   };
 
    return ( 
       <div className={ `${clase} border-t-4 mt-4 bg-white rounded p-6 md:grid md:grid-cols-2 md:gap-4 shadow-lg`}>
@@ -47,6 +144,7 @@ const Pedido = ({pedido}) => {
             <select 
                className='mt-2 appearance-none bg-blue-600 border border-blue-600 text-white p-2 text-center rounded leading-tight focus:outline-none focus:bg-blue-600 focus:border-blue-500 uppercase text-xs font-bold'
                value={estadoPedido}
+               onChange={(e)=>cambiarEstadoPedido(e.target.value)}
             >
                <option value="Completado">COMPLETADO</option>
                <option value="Pendiente">PENDIENTE</option>
@@ -67,6 +165,7 @@ const Pedido = ({pedido}) => {
             
             <button
                className='uppercase text-xs font-bold  flex items-center mt-4 bg-red-800 px-5 py-2 inline-block text-white rounded leading-tight'
+               onClick={()=>confimarEliminarPedido()}
             >
                Eliminar Pedido
                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 ml-3">
