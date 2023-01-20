@@ -35,7 +35,6 @@ const Pedidos = () => {
    const { data, loading, error } = useQuery(OBTENER_PEDIDOS);
    if(loading) return 'Cargando...';
    const { obtenerPedidosVendedor } = data;
-
    return (
       <div>
          <Layout>
